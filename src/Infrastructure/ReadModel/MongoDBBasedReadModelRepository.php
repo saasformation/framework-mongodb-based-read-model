@@ -2,27 +2,26 @@
 
 namespace SaaSFormation\Framework\MongoDBBasedReadModel\Infrastructure\ReadModel;
 
-use MongoDB\Client;
 use Psr\Log\LoggerInterface;
-use SaaSFormation\Framework\Contracts\Application\ReadModel\ReadModel;
-use SaaSFormation\Framework\Contracts\Application\ReadModel\ReadModelRepositoryInterface;
-use SaaSFormation\Framework\Contracts\Application\ReadModel\RepositoryCollectionResult;
-use SaaSFormation\Framework\Contracts\Common\Identity\UUIDFactoryInterface;
+use SaaSFormation\Framework\SharedKernel\Application\ReadModel\AbstractReadModel;
+use SaaSFormation\Framework\SharedKernel\Application\ReadModel\ReadModelRepositoryInterface;
+use SaaSFormation\Framework\SharedKernel\Application\ReadModel\RepositoryCollectionResult;
+use SaaSFormation\Framework\SharedKernel\Common\Identity\UUIDFactoryInterface;
 
 readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepositoryInterface
 {
-    private Client $client;
+    private MongoDBClient $client;
 
     public function __construct(private MongoDBClientProvider $mongoDBClientProvider, private LoggerInterface $logger, private UUIDFactoryInterface $uuidFactory)
     {
         $this->client = $this->mongoDBClientProvider->provide();
     }
 
-    public function save(ReadModel $readModel): void
+    public function save(AbstractReadModel $readModel): void
     {
         $this->logger->debug("Trying to save a read model", ['read_model_code' => $readModel->code()]);
 
-        $id = $readModel->id();
+        $id = $readModel->readModelId;
         if(!$id) {
             $readModel->setId($id = $this->uuidFactory->generate());
         }
@@ -38,7 +37,7 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $this->logger->debug("Read model was saved.", ['read_model_code' => $readModel->code()]);
     }
 
-    public function findOneByCriteria(array $criteria): ?ReadModel
+    public function findOneByCriteria(array $criteria): ?AbstractReadModel
     {
         $this->logger->debug("Trying to find one read model", ['criteria' => $criteria]);
         $result = $this->findByCriteria($criteria);

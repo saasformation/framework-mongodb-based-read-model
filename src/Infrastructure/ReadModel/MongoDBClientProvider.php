@@ -5,18 +5,18 @@ namespace SaaSFormation\Framework\MongoDBBasedReadModel\Infrastructure\ReadModel
 use MongoDB\Client;
 use SaaSFormation\Framework\Contracts\Infrastructure\EnvVarsManagerInterface;
 
-class MongoDBClientProvider
+readonly class MongoDBClientProvider
 {
     public function __construct(private EnvVarsManagerInterface $envVarsManager)
     {
     }
 
-    public function provide(): Client
+    public function provide(): MongoDBClient
     {
         if(!is_string($this->envVarsManager->get('MONGODB_URI'))) {
             throw new \InvalidArgumentException('MONGODB_URI must be a string');
         }
 
-        return new Client($this->envVarsManager->get('MONGODB_URI'));
+        return new MongoDBClient(new Client($this->envVarsManager->get('MONGODB_URI')));
     }
 }
