@@ -38,7 +38,12 @@ readonly class MongoDBClient
         $this->session->abortTransaction();
     }
 
-    public function selectDatabase($databaseName, array $options = []): MongoDBDatabase
+    /**
+     * @param string $databaseName
+     * @param array<string, string> $options
+     * @return MongoDBDatabase
+     */
+    public function selectDatabase(string $databaseName, array $options = []): MongoDBDatabase
     {
         return (new MongoDBDatabase($this->client->selectDatabase($databaseName, $options), $this->session));
     }

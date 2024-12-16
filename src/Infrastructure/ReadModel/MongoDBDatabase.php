@@ -12,11 +12,20 @@ readonly class MongoDBDatabase
     {
     }
 
+    /**
+     * @param string $collectionName
+     * @param array<string, string> $options
+     * @return Collection
+     */
     public function selectCollection(string $collectionName, array $options = []): Collection
     {
         return $this->database->selectCollection($collectionName, array_merge($options, $this->collectionOptions($this->session)));
     }
 
+    /**
+     * @param Session $session
+     * @return array<string, Session>
+     */
     private function collectionOptions(Session $session): array
     {
         $options['session'] = $session;

@@ -21,9 +21,9 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
     {
         $this->logger->debug("Trying to save a read model", ['read_model_code' => $readModel->code()]);
 
-        $id = $readModel->readModelId;
+        $id = $readModel->getReadModelId();
         if(!$id) {
-            $readModel->setId($id = $this->uuidFactory->generate());
+            $readModel->setReadModelId($id = $this->uuidFactory->generate());
         }
 
         $data['data'] = $readModel->toArray();
