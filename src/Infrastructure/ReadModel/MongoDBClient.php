@@ -52,7 +52,7 @@ class MongoDBClient
             $transactionOptions = [
                 'readConcern' => new ReadConcern(ReadConcern::LOCAL),
                 'writeConcern' => new WriteConcern(WriteConcern::MAJORITY),
-                'readPreference' => new ReadPreference(ReadPreference::RP_PRIMARY),
+                'readPreference' => new ReadPreference(ReadPreference::PRIMARY),
             ];
 
             $this->sessions[$requestId->humanReadable()]->startTransaction($transactionOptions);
