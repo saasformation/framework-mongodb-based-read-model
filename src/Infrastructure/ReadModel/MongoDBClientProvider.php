@@ -7,16 +7,19 @@ use SaaSFormation\Framework\Contracts\Infrastructure\EnvVarsManagerInterface;
 
 readonly class MongoDBClientProvider
 {
-    public function __construct(private EnvVarsManagerInterface $envVarsManager)
-    {
-    }
+    private MongoDBClient $client;
 
-    public function provide(): MongoDBClient
+    public function __construct(private EnvVarsManagerInterface $envVarsManager)
     {
         if(!is_string($this->envVarsManager->get('MONGODB_URI'))) {
             throw new \InvalidArgumentException('MONGODB_URI must be a string');
         }
 
-        return new MongoDBClient(new Client($this->envVarsManager->get('MONGODB_URI')));
+        $this->client = new MongoDBClient(new Client($this->envVarsManager->get('MONGODB_URI')));
+    }
+
+    public function provide(): MongoDBClient
+    {
+        return $this->client;
     }
 }

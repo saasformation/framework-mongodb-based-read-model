@@ -19,16 +19,15 @@ readonly class MongoDBDatabase
      */
     public function selectCollection(string $collectionName, array $options = []): Collection
     {
-        return $this->database->selectCollection($collectionName, array_merge($options, $this->collectionOptions($this->session)));
+        return $this->database->selectCollection($collectionName, array_merge($options, $this->collectionOptions()));
     }
 
     /**
-     * @param Session $session
      * @return array<string, Session>
      */
-    private function collectionOptions(Session $session): array
+    private function collectionOptions(): array
     {
-        $options['session'] = $session;
+        $options['session'] = $this->session;
 
         return $options;
     }

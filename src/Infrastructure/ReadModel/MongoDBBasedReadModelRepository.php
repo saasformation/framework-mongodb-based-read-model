@@ -6,6 +6,7 @@ use Psr\Log\LoggerInterface;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\AbstractReadModel;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\ReadModelRepositoryInterface;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\RepositoryCollectionResult;
+use SaaSFormation\Framework\SharedKernel\Common\Identity\IdInterface;
 use SaaSFormation\Framework\SharedKernel\Common\Identity\UUIDFactoryInterface;
 
 readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepositoryInterface
@@ -17,7 +18,7 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $this->client = $this->mongoDBClientProvider->provide();
     }
 
-    public function save(AbstractReadModel $readModel): void
+    public function save(IdInterface $requestId, AbstractReadModel $readModel): void
     {
         $this->logger->debug("Trying to save a read model", ['read_model_code' => $readModel->code()]);
 
@@ -30,17 +31,17 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $data['_id'] = $id->humanReadable();
 
         $this->client
-            ->selectDatabase($this->databaseName())
+            ->selectDatabase($requestId, $this->databaseName())
             ->selectCollection($this->collectionName())
             ->updateOne(['_id' => $data['_id']], ['$set' => ['data' => $data['data']]], ['upsert' => true]);
 
         $this->logger->debug("Read model was saved.", ['read_model_code' => $readModel->code()]);
     }
 
-    public function findOneByCriteria(array $criteria): ?AbstractReadModel
+    public function findOneByCriteria(IdInterface $requestId, array $criteria): ?AbstractReadModel
     {
         $this->logger->debug("Trying to find one read model", ['criteria' => $criteria]);
-        $result = $this->findByCriteria($criteria);
+        $result = $this->findByCriteria($requestId, $criteria);
 
         if($result->totalResultsRetrieved === 0) {
             $this->logger->warning("Read model not found", ['criteria' => $criteria]);
@@ -51,18 +52,18 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         return $result->readModels[0];
     }
 
-    public function findByCriteria(array $criteria): RepositoryCollectionResult
+    public function findByCriteria(IdInterface $requestId, array $criteria): RepositoryCollectionResult
     {
         $this->logger->debug("Trying to find read models", ['criteria' => $criteria]);
         $readModels = [];
 
         $totalResults = $this->client
-            ->selectDatabase($this->databaseName())
+            ->selectDatabase($requestId, $this->databaseName())
             ->selectCollection($this->collectionName())
             ->countDocuments();
 
         $results = $this->client
-            ->selectDatabase($this->databaseName())
+            ->selectDatabase($requestId, $this->databaseName())
             ->selectCollection($this->collectionName())
             ->find($criteria);
 
