@@ -23,8 +23,10 @@ class MongoDBClient
 
     public function startSession(IdInterface $requestId): Session
     {
-        $this->sessions[$requestId->humanReadable()] = $this->client->startSession();
-        $this->transactionCounters[$requestId->humanReadable()] = 0;
+        if(!isset($this->sessions[$requestId->humanReadable()])) {
+            $this->sessions[$requestId->humanReadable()] = $this->client->startSession();
+            $this->transactionCounters[$requestId->humanReadable()] = 0;
+        }
 
         return $this->sessions[$requestId->humanReadable()];
     }
