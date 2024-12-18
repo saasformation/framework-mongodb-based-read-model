@@ -2,12 +2,15 @@
 
 namespace SaaSFormation\Framework\MongoDBBasedReadModel\Infrastructure\ReadModel;
 
+use Assert\Assert;
 use Psr\Log\LoggerInterface;
+use SaaSFormation\Framework\SharedKernel\Application\Messages\QueryInterface;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\AbstractReadModel;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\ReadModelRepositoryInterface;
 use SaaSFormation\Framework\SharedKernel\Application\ReadModel\RepositoryCollectionResult;
 use SaaSFormation\Framework\SharedKernel\Common\Identity\IdInterface;
 use SaaSFormation\Framework\SharedKernel\Common\Identity\UUIDFactoryInterface;
+use SaaSFormation\Framework\SharedKernel\Domain\Messages\DomainEventInterface;
 
 readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepositoryInterface
 {
@@ -18,7 +21,7 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $this->client = $this->mongoDBClientProvider->provide();
     }
 
-    public function save(IdInterface $requestId, AbstractReadModel $readModel): void
+    public function save(DomainEventInterface $domainEvent, AbstractReadModel $readModel): void
     {
         $this->logger->debug("Trying to save a read model", ['read_model_code' => $readModel->code()]);
 
@@ -30,18 +33,19 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $data['data'] = $readModel->toArray();
         $data['_id'] = $id->humanReadable();
 
+        Assert::that($domainEvent->getRequestId())->isInstanceOf(IdInterface::class);
         $this->client
-            ->selectDatabase($requestId, $this->databaseName())
+            ->selectDatabase($domainEvent->getRequestId(), $this->databaseName())
             ->selectCollection($this->collectionName())
             ->updateOne(['_id' => $data['_id']], ['$set' => ['data' => $data['data']]], ['upsert' => true]);
 
         $this->logger->debug("Read model was saved.", ['read_model_code' => $readModel->code()]);
     }
 
-    public function findOneByCriteria(IdInterface $requestId, array $criteria): ?AbstractReadModel
+    public function findOneByCriteria(QueryInterface $query, array $criteria): ?AbstractReadModel
     {
         $this->logger->debug("Trying to find one read model", ['criteria' => $criteria]);
-        $result = $this->findByCriteria($requestId, $criteria);
+        $result = $this->findByCriteria($query, $criteria);
 
         if($result->totalResultsRetrieved === 0) {
             $this->logger->warning("Read model not found", ['criteria' => $criteria]);
@@ -52,18 +56,19 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         return $result->readModels[0];
     }
 
-    public function findByCriteria(IdInterface $requestId, array $criteria): RepositoryCollectionResult
+    public function findByCriteria(QueryInterface $query, array $criteria): RepositoryCollectionResult
     {
         $this->logger->debug("Trying to find read models", ['criteria' => $criteria]);
         $readModels = [];
 
+        Assert::that($query->getRequestId())->isInstanceOf(IdInterface::class);
         $totalResults = $this->client
-            ->selectDatabase($requestId, $this->databaseName())
+            ->selectDatabase($query->getRequestId(), $this->databaseName())
             ->selectCollection($this->collectionName())
             ->countDocuments();
 
         $results = $this->client
-            ->selectDatabase($requestId, $this->databaseName())
+            ->selectDatabase($query->getRequestId(), $this->databaseName())
             ->selectCollection($this->collectionName())
             ->find($criteria);
 
