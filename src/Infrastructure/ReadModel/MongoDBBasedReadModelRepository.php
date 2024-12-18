@@ -33,7 +33,7 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $data['data'] = $readModel->toArray();
         $data['_id'] = $id->humanReadable();
 
-        Assert::that($domainEvent->getRequestId())->isInstanceOf(IdInterface::class);
+        Assert::that($domainEvent->getRequestId())->isInstanceOf(IdInterface::class, "Request id is null at MongoDBBasedReadModelRepository save");
         $this->client
             ->selectDatabase($domainEvent->getRequestId(), $this->databaseName())
             ->selectCollection($this->collectionName())
@@ -61,7 +61,7 @@ readonly abstract class MongoDBBasedReadModelRepository implements ReadModelRepo
         $this->logger->debug("Trying to find read models", ['criteria' => $criteria]);
         $readModels = [];
 
-        Assert::that($query->getRequestId())->isInstanceOf(IdInterface::class);
+        Assert::that($query->getRequestId())->isInstanceOf(IdInterface::class, "Request id is null at MongoDBBasedReadModelRepository findByCriteria");
         $totalResults = $this->client
             ->selectDatabase($query->getRequestId(), $this->databaseName())
             ->selectCollection($this->collectionName())

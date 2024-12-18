@@ -45,8 +45,8 @@ class MongoDBClient
 
     public function beginTransaction(IdInterface $requestId): void
     {
-        Assert::that($this->sessions)->keyIsset($requestId->humanReadable());
-        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable());
+        Assert::that($this->sessions)->keyIsset($requestId->humanReadable(), "Session is not set for id " . $requestId->humanReadable());
+        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable(), "Transactions counter is not ser for id " . $requestId->humanReadable());
 
         if ($this->transactionCounters[$requestId->humanReadable()] === 0) {
             $transactionOptions = [
@@ -63,8 +63,8 @@ class MongoDBClient
 
     public function commitTransaction(IdInterface $requestId): void
     {
-        Assert::that($this->sessions)->keyIsset($requestId->humanReadable());
-        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable());
+        Assert::that($this->sessions)->keyIsset($requestId->humanReadable(), "Session is not set for id " . $requestId->humanReadable());
+        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable(), "Transactions counter is not ser for id " . $requestId->humanReadable());
 
         if ($this->transactionCounters[$requestId->humanReadable()] === 0) {
             throw new \Exception("No active transaction to commit.");
@@ -79,8 +79,8 @@ class MongoDBClient
 
     public function rollbackTransaction(IdInterface $requestId): void
     {
-        Assert::that($this->sessions)->keyIsset($requestId->humanReadable());
-        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable());
+        Assert::that($this->sessions)->keyIsset($requestId->humanReadable(), "Session is not set for id " . $requestId->humanReadable());
+        Assert::that($this->transactionCounters)->keyIsset($requestId->humanReadable(), "Transactions counter is not ser for id " . $requestId->humanReadable());
 
         if ($this->transactionCounters[$requestId->humanReadable()] === 0) {
             throw new \Exception("No active transaction to rollback.");
